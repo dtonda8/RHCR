@@ -58,16 +58,21 @@ list<State> BasicGraph::get_neighbors(const State& s) const
     if (s.orientation >= 0)
     {
         neighbors.push_back(State(s.location, s.timestep + 1, s.orientation)); // wait
-        if (weights[s.location][s.orientation] < WEIGHT_MAX - 1)
-            neighbors.push_back(State(s.location + move[s.orientation], s.timestep + 1, s.orientation)); // move
-        int next_orientation1 = s.orientation + 1;
-        int next_orientation2 = s.orientation - 1;
-        if (next_orientation2 < 0)
-            next_orientation2 += 4;
-        else if (next_orientation1 > 3)
-            next_orientation1 -= 4;
-        neighbors.push_back(State(s.location, s.timestep + 1, next_orientation1)); // turn left
-        neighbors.push_back(State(s.location, s.timestep + 1, next_orientation2)); // turn right
+        // if (weights[s.location][s.orientation] < WEIGHT_MAX - 1)
+        //     neighbors.push_back(State(s.location + move[s.orientation], s.timestep + 1, s.orientation)); // move
+
+        for (int i = 0; i < 4; i++) {
+            if (weights[s.location][i] < WEIGHT_MAX - 1)
+                neighbors.push_back(State(s.location + move[i], s.timestep + 1, i)); // move
+        }
+        // int next_orientation1 = s.orientation + 1;
+        // int next_orientation2 = s.orientation - 1;
+        // if (next_orientation2 < 0)
+        //     next_orientation2 += 4;
+        // else if (next_orientation1 > 3)
+        //     next_orientation1 -= 4;
+        // neighbors.push_back(State(s.location, s.timestep + 1, next_orientation1)); // turn left
+        // neighbors.push_back(State(s.location, s.timestep + 1, next_orientation2)); // turn right
     }
     else
     {

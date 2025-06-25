@@ -337,10 +337,14 @@ list<tuple<int, int, int>> BasicSystem::move()
     {
         for (int k = 0; k < num_of_drives; k++) {
             // Agents waits at its current locations if no future paths are assigned
-            while ((int) paths[k].size() <= t)
+            // std::cout << paths[k].size() << " " << t << std::endl;
+            while (paths[k].size() <= t)
             { // This should not happen?
                 State final_state = paths[k].back();
-                paths[k].emplace_back(final_state.location, final_state.timestep + 1, final_state.orientation);
+                State s{final_state.location, final_state.timestep + 1, final_state.orientation};
+                // std::cout << paths[k].size() << std::endl;
+                paths[k].push_back(s);
+                // paths[k].emplace_back(final_state.location, final_state.timestep + 1, final_state.orientation);
             }
         }
     }
@@ -376,8 +380,8 @@ list<tuple<int, int, int>> BasicSystem::move()
                 {
                     if (G.get_rotate_degree(prev.orientation, curr.orientation) == 2)
                     {
-                        cout << "Drive " << k << " rotates 180 degrees from " << prev << " to " << curr << endl;
-                        save_results();
+                        // cout << "Drive " << k << " rotates 180 degrees from " << prev << " to " << curr << endl;
+                        // save_results();
                         exit(-1);
                     }
                 }
@@ -385,15 +389,15 @@ list<tuple<int, int, int>> BasicSystem::move()
                 {
                     if (prev.orientation != curr.orientation)
 					{
-						cout << "Drive " << k << " rotates while moving from " << prev << " to " << curr << endl;
-						save_results();
+						// cout << "Drive " << k << " rotates while moving from " << prev << " to " << curr << endl;
+						// save_results();
 						exit(-1);
 					}
 					else if ( !G.valid_move(prev.location, prev.orientation) ||
                         prev.location + G.move[prev.orientation] != curr.location)
                     {
-                        cout << "Drive " << k << " jump from " << prev << " to " << curr << endl;
-                        save_results();
+                        // cout << "Drive " << k << " jump from " << prev << " to " << curr << endl;
+                        // save_results();
                         exit(-1);
                     }
                 }
@@ -402,8 +406,8 @@ list<tuple<int, int, int>> BasicSystem::move()
 					int dir = G.get_direction(prev.location, curr.location);
 					if (dir < 0 || !G.valid_move(prev.location, dir))
 					{
-						cout << "Drive " << k << " jump from " << prev << " to " << curr << endl;
-						save_results();
+						// cout << "Drive " << k << " jump from " << prev << " to " << curr << endl;
+						// save_results();
 						exit(-1);
 					}
 				}
@@ -422,7 +426,7 @@ list<tuple<int, int, int>> BasicSystem::move()
 						{
 							cout << "Drive " << k << " at " << curr << " has a conflict with drive " << j
 								<< " at " << paths[j][i] << endl;
-							save_results(); //TODO: write termination reason to files
+							// save_results(); //TODO: write termination reason to files
 							exit(-1);
 						}
 					}
@@ -455,8 +459,8 @@ void BasicSystem::add_partial_priorities(const vector<Path>& initial_paths, Prio
 
 void BasicSystem::save_results()
 {
-	if (screen)
-		std::cout << "*** Saving " << seed << " ***" << std::endl;
+	// if (screen)
+	// 	std::cout << "*** Saving " << seed << " ***" << std::endl;
     clock_t t = std::clock();
     std::ofstream output;
 
@@ -512,9 +516,9 @@ void BasicSystem::save_results()
         output << std::endl;
     }
     output.close();
-    saving_time = (std::clock() - t) / CLOCKS_PER_SEC;
-	if (screen)
-		std::cout << "Done! (" << saving_time << " s)" << std::endl;
+    // saving_time = (std::clock() - t) / CLOCKS_PER_SEC;
+	// if (screen)
+	// 	std::cout << "Done! (" << saving_time << " s)" << std::endl;
 }
 
 

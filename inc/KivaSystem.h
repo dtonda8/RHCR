@@ -9,7 +9,7 @@ public:
 	KivaSystem(const KivaGrid& G, MAPFSolver& solver);
 	~KivaSystem();
 
-	void simulate(int simulation_time);
+	void simulate(int simulation_time, bool use_default_init);
 
 
 private:

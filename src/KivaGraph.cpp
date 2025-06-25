@@ -91,88 +91,103 @@ bool KivaGrid::load_weighted_map(std::string fname)
 // load map
 bool KivaGrid::load_unweighted_map(std::string fname)
 {
-    std::string line;
-    std::ifstream myfile ((fname).c_str());
+	std::string line;
+	std::ifstream myfile((fname).c_str());
 	if (!myfile.is_open())
-    {
-	    std::cout << "Map file " << fname << " does not exist. " << std::endl;
-        return false;
-    }
+	{
+			std::cout << "Map file " << fname << " does not exist." << std::endl;
+			return false;
+	}
+
+	// std::cout << "*** Loading map ***" << std::endl;
+	clock_t t = std::clock();
+	std::size_t pos = fname.rfind('.');
+	map_name = fname.substr(0, pos);
+
+	// Skip "type octile"
+	getline(myfile, line);
+
+	// Read height
+	getline(myfile, line);
+	rows = std::stoi(line.substr(line.find("height") + 6));
 	
-    std::cout << "*** Loading map ***" << std::endl;
-    clock_t t = std::clock();
-	std::size_t pos = fname.rfind('.');      // position of the file extension
-    map_name = fname.substr(0, pos);     // get the name without extension
-    getline (myfile, line); 
-	
-	
-	boost::char_separator<char> sep(",");
-	boost::tokenizer< boost::char_separator<char> > tok(line, sep);
-	boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin();
-	rows = atoi((*beg).c_str()); // read number of rows
-	beg++;
-	cols = atoi((*beg).c_str()); // read number of cols
+	// Read width
+	getline(myfile, line);
+	cols = std::stoi(line.substr(line.find("width") + 5));
+
+	// Skip "map"
+	getline(myfile, line);
+
+	rows += 2;
+	cols += 2;
+
 	move[0] = 1;
 	move[1] = -cols;
 	move[2] = -1;
 	move[3] = cols;
 
-	std::stringstream ss;
-	getline(myfile, line);
-	ss << line;
-	int num_endpoints;
-	ss >> num_endpoints;
-
-	int agent_num;
-	ss.clear();
-	getline(myfile, line);
-	ss << line;
-	ss >> agent_num;
-
-	ss.clear();
-	getline(myfile, line);
-	ss << line;
-	int maxtime;
-	ss >> maxtime;
-
-	//this->agents.resize(agent_num);
-	//endpoints.resize(num_endpoints + agent_num);
 	types.resize(rows * cols);
-	weights.resize(rows*cols);
-	//DeliverGoal.resize(row*col, false);
-	// read map
-	//int ep = 0, ag = 0;
-	for (int i = 0; i < rows; i++)
+	weights.resize(rows * cols);
+
+	for (int i = 1; i < rows-1; i++)
 	{
 		getline(myfile, line);
-		for (int j = 0; j < cols; j++)
+		for (int j = 1; j < cols-1; j++)
 		{
 			int id = cols * i + j;
 			weights[id].resize(5, WEIGHT_MAX);
-			if (line[j] == '@') // obstacle
+
+			switch (line[j-1])
 			{
-				types[id] = "Obstacle";
-			}
-			else if (line[j] == 'e') //endpoint
-			{
-				types[id] = "Endpoint";
-				weights[id][4] = 1;
-				endpoints.push_back(id);
-			}
-			else if (line[j] == 'r') //robot rest
-			{
-				types[id] = "Home";
-				weights[id][4] = 1;
-				agent_home_locations.push_back(id);
-			}
-			else
-			{
-				types[id] = "Travel";
-				weights[id][4] = 1;
+				case '@': // obstacle
+					types[id] = "Obstacle";
+					break;
+				case 'e': // endpoint (customized, not in standard format)
+					types[id] = "Endpoint";
+					weights[id][4] = 1;
+					endpoints.push_back(id);
+					break;
+				case 'r': // robot start/home
+					types[id] = "Home";
+					weights[id][4] = 1;
+					agent_home_locations.push_back(id);
+					break;
+				case '.': // walkable terrain
+				case 'G': // general ground (could use specific rule if needed)
+					types[id] = "Travel";
+					weights[id][4] = 1;
+					break;
+				default:
+					types[id] = "Unknown"; // Catch anything unexpected
+					break;
 			}
 		}
 	}
-	shuffle(agent_home_locations.begin(), agent_home_locations.end(), std::default_random_engine());
+
+	// Obstacle border 
+	for (int i = 0; i < rows; i++) {
+		int left_col_row = cols * i;
+		int right_col_row = cols * (i+1) - 1;
+
+		types[left_col_row] = "Obstacle";
+		types[right_col_row] = "Obstacle";
+
+		weights[left_col_row].resize(5, WEIGHT_MAX);
+		weights[right_col_row].resize(5, WEIGHT_MAX);
+	}
+
+	for (int j = 0; j < cols; j++) {
+		int top_row_col = j;
+		int bottom_row_col = cols * (rows-1) + j;
+
+		types[top_row_col] = "Obstacle";
+		types[bottom_row_col] = "Obstacle";
+
+		weights[top_row_col].resize(5, WEIGHT_MAX);
+		weights[bottom_row_col].resize(5, WEIGHT_MAX);
+	}
+
+	// shuffle(agent_home_locations.begin(), agent_home_locations.end(), std::default_random_engine());
 	for (int i = 0; i < cols * rows; i++)
 	{
 		if (types[i] == "Obstacle")
@@ -190,17 +205,17 @@ bool KivaGrid::load_unweighted_map(std::string fname)
 	
 
 	myfile.close();
-    double runtime = (std::clock() - t) / CLOCKS_PER_SEC;
-    std::cout << "Map size: " << rows << "x" << cols << " with ";
-	cout << endpoints.size() << " endpoints and " <<
-	agent_home_locations.size() << " home stations." << std::endl;		
-    std::cout << "Done! (" << runtime << " s)" << std::endl;
+  //   double runtime = (std::clock() - t) / CLOCKS_PER_SEC;
+  //   std::cout << "Map size: " << rows << "x" << cols << " with ";
+	// cout << endpoints.size() << " endpoints and " <<
+	// agent_home_locations.size() << " home stations." << std::endl;		
+  //   std::cout << "Done! (" << runtime << " s)" << std::endl;
     return true;
 }
 
 void KivaGrid::preprocessing(bool consider_rotation)
 {
-	std::cout << "*** PreProcessing map ***" << std::endl;
+	// std::cout << "*** PreProcessing map ***" << std::endl;
 	clock_t t = std::clock();
 	this->consider_rotation = consider_rotation;
 	std::string fname;
@@ -225,9 +240,9 @@ void KivaGrid::preprocessing(bool consider_rotation)
 		{
 			heuristics[home] = compute_heuristics(home);
 		}
-		save_heuristics_table(fname);
+		// save_heuristics_table(fname);
 	}
 
-	double runtime = (std::clock() - t) / CLOCKS_PER_SEC;
-	std::cout << "Done! (" << runtime << " s)" << std::endl;
+	// double runtime = (std::clock() - t) / CLOCKS_PER_SEC;
+	// std::cout << "Done! (" << runtime << " s)" << std::endl;
 }

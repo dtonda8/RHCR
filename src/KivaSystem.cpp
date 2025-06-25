@@ -19,11 +19,13 @@ void KivaSystem::initialize()
 	goal_locations.resize(num_of_drives);
 	paths.resize(num_of_drives);
 	finished_tasks.resize(num_of_drives);
-	bool succ = load_records(); // continue simulating from the records
+	// bool succ = load_records(); // continue simulating from the records
+	bool succ = false;
 	if (!succ)
 	{
 		timestep = 0;
-		succ = load_locations();
+		// succ = load_locations();
+		succ = false;
 		if (!succ)
 		{
 			cout << "Randomly generating initial locations" << endl;
@@ -199,24 +201,27 @@ void KivaSystem::update_goal_locations()
 
 }
 
-
-void KivaSystem::simulate(int simulation_time)
+void KivaSystem::simulate(int simulation_time, bool use_default_init)
 {
-	std::cout << "*** Simulating " << seed << " ***" << std::endl;
+	// std::cout << "*** Simulating " << seed << " ***" << std::endl;
 	this->simulation_time = simulation_time;
-	initialize();
+	if (use_default_init) initialize();
+	else {
+		timestep = 0;
+		initialize_solvers();
+	}
 
 	for (; timestep < simulation_time; timestep += simulation_window)
 	{
-		std::cout << "Timestep " << timestep << std::endl;
+		// std::cout << "Timestep " << timestep << std::endl;
 
 		update_start_locations();
-		update_goal_locations();
+		// update_goal_locations();
 		solve();
 
 		// move drives
 		auto new_finished_tasks = move();
-		std::cout << new_finished_tasks.size() << " tasks has been finished" << std::endl;
+		// std::cout << new_finished_tasks.size() << " tasks has been finished" << std::endl;
 
 		// update tasks
 		for (auto task : new_finished_tasks)
@@ -229,15 +234,15 @@ void KivaSystem::simulate(int simulation_time)
 				held_endpoints.erase(loc);
 		}
 
-		if (congested())
+		if (congested()) // or finished tasks
 		{
-			cout << "***** Too many traffic jams ***" << endl;
+			// cout << "***** Too many traffic jams ***" << endl;
 			break;
 		}
 	}
 
-	update_start_locations();
-	std::cout << std::endl << "Done!" << std::endl;
-	save_results();
+	// update_start_locations();
+	// std::cout << std::endl << "Done!" << std::endl;
+	// save_results();
 }
 

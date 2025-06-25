@@ -572,7 +572,15 @@ bool PBS::generate_root_node()
         runtime_rt += (double)(std::clock() - t) / CLOCKS_PER_SEC;
         vector< vector<double> > h_values(goal_locations[i].size());
         t = std::clock();
-        path = path_planner.run(G, starts[i], goal_locations[i], rt);
+        auto start = starts[i];
+        auto goal_locs =  goal_locations[i];
+        if (goal_locs.size() == 0) {
+            path = Path(1);
+            path[0] = start;
+        } else {
+            path = path_planner.run(G, start, goal_locs, rt);
+        }
+
 		runtime_plan_paths += (double)(std::clock() - t) / CLOCKS_PER_SEC;
         path_cost = path_planner.path_cost;
         rt.clear();
@@ -794,8 +802,8 @@ bool PBS::run(const vector<State>& starts,
             start_loc = goal.first;
         }
     }
-	if (screen > 0) // 1 or 2
-		print_results();
+	// if (screen > 0) // 1 or 2
+	// 	print_results();
 	return solution_found;
 }
 

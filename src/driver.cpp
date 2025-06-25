@@ -184,7 +184,7 @@ int main(int argc, char** argv)
 		KivaSystem system(G, *solver);
 		set_parameters(system, vm);
 		G.preprocessing(system.consider_rotation);
-		system.simulate(vm["simulation_time"].as<int>());
+		system.simulate(vm["simulation_time"].as<int>(), true);
 		return 0;
 	}
 	else if (vm["scenario"].as<string>() == "SORTING")
