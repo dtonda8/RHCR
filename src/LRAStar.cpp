@@ -210,7 +210,8 @@ void LRAStar::resolve_conflicts(const vector<Path>& input_paths)
                 auto other = next_locations.find(loc);
                 if (other == next_locations.end())
                 { // No other agents want to go to this location yet
-					solution[agent].emplace_back(loc, t, orientation);
+									State nxt_state(loc, t, orientation);
+					solution[agent].push_back(nxt_state);
                     path_pointers[agent]++;
                 }
                 else

@@ -65,7 +65,7 @@ Path SIPP::run(const BasicGraph& G, const State& start,
 	double h_val = compute_h_value(G, start.location, 0, goal_location);
 	if (h_val > INT_MAX)
 	{
-		cout << "The start and goal locations are disconnected!" << endl;
+		// cout << "The start and goal locations are disconnected!" << endl;
 		return Path();
 	}
     Interval interval = rt.getFirstSafeInterval(start.location);

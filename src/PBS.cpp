@@ -589,7 +589,7 @@ bool PBS::generate_root_node()
 
         if (path.empty())
         {
-            std::cout << "NO SOLUTION EXISTS";
+            // std::cout << "NO SOLUTION EXISTS";
             return false;
         }
 

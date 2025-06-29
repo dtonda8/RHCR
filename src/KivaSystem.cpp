@@ -217,7 +217,9 @@ void KivaSystem::simulate(int simulation_time, bool use_default_init)
 
 		update_start_locations();
 		// update_goal_locations();
-		solve();
+		if (!solve()) { // If unable to produce solutions, terminate immediately
+			return;
+		}
 
 		// move drives
 		auto new_finished_tasks = move();

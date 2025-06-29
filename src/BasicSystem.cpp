@@ -568,7 +568,7 @@ void BasicSystem::update_travel_times(unordered_map<int, double>& travel_times)
 }
 
 
-void BasicSystem::solve()
+bool BasicSystem::solve()
 {
     LRA_called = false;
 	LRAStar lra(G, solver.path_planner);
@@ -673,16 +673,18 @@ void BasicSystem::solve()
 			 }
 			 else
 			 {
-				 lra.resolve_conflicts(solver.solution);
-				 update_paths(lra.solution);
+				//  lra.resolve_conflicts(solver.solution);
+				//  update_paths(lra.solution);
+                return false;
 			 }
 		 }
 		 if (log)
 			 solver.save_search_tree(outfile + "/search_trees/" + std::to_string(timestep) + ".gv");
 
 	 }
-	 solver.save_results(outfile + "/solver.csv", std::to_string(timestep) + "," 
-										+ std::to_string(num_of_drives) + "," + std::to_string(seed));
+     return true;
+	//  solver.save_results(outfile + "/solver.csv", std::to_string(timestep) + "," 
+	// 									+ std::to_string(num_of_drives) + "," + std::to_string(seed));
 }
 
 bool BasicSystem::solve_by_WHCA(vector<Path>& planned_paths,
